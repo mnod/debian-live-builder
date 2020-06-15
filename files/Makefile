@@ -1,7 +1,7 @@
 init:
 	lb config
-	rm -r config/package-lists
-	ln -s package-lists config/package-lists
+	rm -r config/package-lists/*chroot
+	cp packages.list.chroot config/package-lists/
 clean:
 	lb clean
 config:
