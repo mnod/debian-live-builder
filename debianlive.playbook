@@ -1,0 +1,60 @@
+- name: debian live environment
+  hosts: tag_Name_DebianLiveBuilder
+  remote_user: admin
+  become: yes
+  vars:
+    ansible_ssh_private_key_file: "id_rsa"
+    DownloadDirectory: "{{ DownloadDirectory }}"
+  tasks:
+    - name: install debian live package
+      apt: 
+        name: ['live-build','live-boot','live-config','apt-cacher-ng','make']
+        state: present
+        install_recommends: no
+      when: ansible_pkg_mgr == 'apt'
+      tags: packages
+
+    - name: Create a directory if it does not exist
+      file:
+        path: /media/ebs/debianlive
+        state: directory
+        owner: admin
+        mode: '0755'
+
+    - name: copy Makefile
+      copy: 
+        src: Makefile
+        dest: /media/ebs/debianlive/Makefile
+        owner: 'admin'
+        group: 'admin'
+        mode: '0644'
+
+    - name: copy packages.list.chroot
+      copy: 
+        src: packages.list.chroot
+        dest: /media/ebs/debianlive/packages.list.chroot
+        owner: 'admin'
+        group: 'admin'
+        mode: '0644'
+
+    - name: Run 'make init'
+      make:
+        chdir: /media/ebs/debianlive
+        target: init
+
+    - name: Run 'make config'
+      make:
+        chdir: /media/ebs/debianlive
+        target: config
+      become: yes
+
+    - name: Run 'make config'
+      make:
+        chdir: /media/ebs/debianlive
+        target: build
+      become: yes
+
+    - name: fetch image file
+      fetch:
+        src: /media/ebs/debianlive/live-image-amd64.hybrid.iso
+        dest: "{{ DownloadDirectory }}/live-image-amd64.hybrid.iso"

@@ -1,0 +1,21 @@
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: False
+  vars:
+    OperationServer: "{{ OperationServer }}"
+    KeyName: "{{ KeyName }}"
+    InstanceType: "{{ InstanceType }}"
+    ImageId: "{{ ImageId }}"
+  tasks:
+    - name: create a cloudformation stack
+      cloudformation:
+        stack_name: "DebianLiveBuilder"
+        state: "present"
+        template: "stack.yml"
+        template_parameters:
+          OperationServer: "{{ OperationServer }}"
+          KeyName: "{{ KeyName }}"
+          InstanceType: "{{ InstanceType }}"
+          ImageId: "{{ ImageId }}"
+        tags:
+          Stack: "DebianLiveBuilder"

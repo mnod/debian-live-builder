@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  OperationServer:
+    Type: String
+  KeyName: 
+    Type: String
+  InstanceType:
+    Type: String
+  ImageId:
+    Type: String
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+      - Key: Name
+        Value: DebianLiveBuilder
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: 
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: VPC
+  PublicRoute:
+    DependsOn: AttachGateway
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: 
+        Ref: InternetGateway
+      RouteTableId: 
+        Ref: PublicRouteTable
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: "10.0.0.0/24"
+      AvailabilityZone:
+         Fn::Select:
+         - '0'
+         - Fn::GetAZs:
+             Ref: AWS::Region
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet1
+      RouteTableId:
+        Ref: PublicRouteTable
+  SecurityGroupPub:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "security group for ssh server in public subnet"
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 
+            Ref: OperationServer
+  EC2Instance0:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: 
+        Ref: ImageId
+      InstanceInitiatedShutdownBehavior: 'terminate'
+      InstanceType: 
+        Ref: InstanceType
+      CreditSpecification:
+        CPUCredits: "standard"
+      KeyName: 
+        Ref: KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: SecurityGroupPub
+          SubnetId:
+            Ref: PublicSubnet1
+      UserData:
+        Fn::Base64: |
+          #! /bin/sh
+          sudo apt update && sudo apt install -y python-apt
+          if [ -b /dev/nvme0n1 ]; then
+            sudo mkfs -t ext4 /dev/nvme0n1
+            sudo mkdir /media/ebs && sudo mount /dev/nvme0n1 /media/ebs
+          fi
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1
+        Ebs: 
+          DeleteOnTermination: "true"
+          VolumeSize: "16"
+      Tags:
+      - Key: Name
+        Value: DebianLiveBuilder
+Outputs:
+   ClientInstanceId:
+     Value: !Ref EC2Instance0
+   ClientPublicIp:
+     Value: !GetAtt EC2Instance0.PublicDnsName

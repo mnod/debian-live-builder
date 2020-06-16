@@ -1,0 +1,7 @@
+{
+  "ImageId": "ami-025e5dec754f6ddbd",
+  "InstanceType": "t3.small",
+  "KeyName": "yourkeyname",
+  "OperationServer": "your.public.ip.address/32",
+  "DownloadDirectory":"/path/to/directory/"
+}

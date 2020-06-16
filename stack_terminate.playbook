@@ -1,0 +1,8 @@
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: create a cloudformation stack
+      cloudformation:
+        stack_name: "DebianLiveBuilder"
+        state: "absent"
