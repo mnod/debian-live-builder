@@ -28,6 +28,8 @@ clone this project to any direcotory for example /tmp/debian-live-builder,
 
 - rename extra_vars.json.template to extra_vars.json and edit it
 
+After edit it, please test it matches json format
+
 	{
 	  "ImageId": "ami-025e5dec754f6ddbd", # AMI id of EC2 instance
 	  "InstanceType": "t3.small",         # Instance type of EC2 instance 
