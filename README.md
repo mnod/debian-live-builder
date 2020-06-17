@@ -11,11 +11,15 @@ Please see [Debian Live Manual](https://live-team.pages.debian.net/live-manual/h
 
 ## how to use
 
-1. install ansible
+1. install ansible and make
 
-install ansible with pip (not with apt/yum)
+install ansible with pip (not with apt)
 
 	pip install ansible
+
+install make (it could be installed with apt)
+
+	apt install make
 
 2. clone this project
 
